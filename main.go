@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -85,10 +86,11 @@ func main() {
 	}
 }
 
-func setupLogger() {
+func setupLogger(output io.Writer, level string) {
+	logrus.SetOutput(output)
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 
-	if level, err := logrus.ParseLevel(config.logLevel); err != nil {
+	if level, err := logrus.ParseLevel(level); err != nil {
 		logrus.SetLevel(logrus.InfoLevel)
 		logrus.WithError(err).Error("failed to parse log level")
 	} else {
@@ -97,7 +99,7 @@ func setupLogger() {
 }
 
 func poll(_ *cli.Context) error {
-	setupLogger()
+	setupLogger(os.Stdout, config.logLevel)
 	client := NewOktaClient(config)
 	return fmt.Errorf("failed to poll system logs: %w", client.PollSystemLogs())
 }
