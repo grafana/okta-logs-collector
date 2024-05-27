@@ -1,0 +1,75 @@
+[
+  {
+    "actor": {
+      "alternateId": "test@example.com",
+      "displayName": "Test User",
+      "id": "some-random-id",
+      "type": "User"
+    },
+    "authenticationContext": { "externalSessionId": "some-random-id" },
+    "client": {
+      "device": "Computer",
+      "geographicalContext": {
+        "city": "New York",
+        "country": "US",
+        "geolocation": { "lat": 40.7128, "lon": 74.006 },
+        "postalCode": "10000",
+        "state": "NY"
+      },
+      "id": "some-random-id",
+      "ipAddress": "1.1.1.1",
+      "userAgent": { "browser": "Chrome", "os": "Mac OS X", "rawUserAgent": "random-user-agent" },
+      "zone": "null"
+    },
+    "debugContext": {
+      "debugData": {
+        "authnRequestId": "some-random-id",
+        "dtHash": "some-random-hash",
+        "redirectUri": "https://example.com/login/sso/oidc",
+        "requestId": "some-random-id",
+        "requestUri": "/oauth2/v1/authorize",
+        "threatSuspected": "false",
+        "url": "/oauth2/v1/authorize?client_id=some-random-id\u0026scope=openid+email+profile\u0026response_type=code\u0026redirect_uri=https://example.com/login/sso/oidc\u0026state=some-random-state\u0026code_challenge=some-random-code-challenge\u0026code_challenge_method=S256"
+      }
+    },
+    "displayMessage": "User attempted unauthorized access to app",
+    "eventType": "app.generic.unauth_app_access_attempt",
+    "legacyEventType": "app.generic.unauth_app_access_attempt",
+    "outcome": { "result": "FAILURE" },
+    "published": "2009-11-10T23:00:00Z",
+    "request": {
+      "ipChain": [
+        {
+          "geographicalContext": {
+            "city": "New York",
+            "country": "US",
+            "geolocation": { "lat": 40.7128, "lon": 74.006 },
+            "postalCode": "10000",
+            "state": "NY"
+          },
+          "ip": "1.1.1.1",
+          "version": "V4"
+        }
+      ]
+    },
+    "securityContext": {
+      "asNumber": 1234,
+      "asOrg": "some-random-org",
+      "domain": "example.com",
+      "isProxy": false,
+      "isp": "some-random-isp"
+    },
+    "severity": "WARN",
+    "target": [
+      {
+        "alternateId": "Something something",
+        "displayName": "Some display name",
+        "id": "some-random-id",
+        "type": "AppInstance"
+      }
+    ],
+    "transaction": { "id": "some-random-id", "type": "WEB" },
+    "uuid": "some-random-uuid",
+    "version": "0"
+  }
+]
