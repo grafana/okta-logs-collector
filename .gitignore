@@ -23,3 +23,6 @@ go.work.sum
 
 # Binaries
 okta-logs-collector
+
+# Distribution directory
+dist/
