@@ -1,0 +1,36 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+client:
+  url: http://localhost:3100/loki/api/v1/push
+  external_labels:
+    job: "okta-logs-collector"
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ["__meta_docker_container_name"]
+        regex: "/(.*)"
+        target_label: "container"
+    pipeline_stages:
+      - match:
+          selector: '{job=~".*"}'
+          stages:
+            - json:
+                expressions:
+                  eventType: event.eventType
+                  level: event.severity
+                  timestamp: time
+            - timestamp:
+                format: RFC3339
+                source: timestamp
+            - labels:
+                eventType: ""
+                level: ""

@@ -1,0 +1,30 @@
+auth_enabled: false
+
+server:
+  http_listen_address: 0.0.0.0
+  http_listen_port: 3100
+
+schema_config:
+  configs:
+    - from: 2020-05-15
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+common:
+  path_prefix: ./loki
+  replication_factor: 1
+  compactor_address: http://localhost:3100
+  storage:
+    filesystem:
+      chunks_directory: /tmp/loki/chunks
+      rules_directory: /tmp/loki/rules
+  ring:
+    kvstore:
+      store: memberlist
+
+compactor:
+  working_directory: /tmp/compactor

@@ -1,0 +1,59 @@
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.containers.targets
+  forward_to = [loki.echo.default.receiver,loki.process.default.receiver]
+  labels	 = {
+	job = "okta-logs-collector",
+  }
+  refresh_interval = "10s"
+}
+
+
+loki.echo "default" {}
+
+loki.process "default" {
+	forward_to = [loki.write.default.receiver]
+
+	stage.match {
+		// Match only logs from the okta-logs-collector job
+		selector = "{job=\"okta-logs-collector\"}"
+
+		// Extract important labels and the timestamp from the log line
+		// and map them to Loki labels
+		stage.json {
+			expressions = {
+				eventType = "event.eventType",
+				level     = "event.severity",
+				timestamp = "time",
+			}
+		}
+
+		// Use the timestamp from the log line as the Loki timestamp
+		stage.timestamp {
+			source = "timestamp"
+			format = "RFC3339"
+		}
+
+		// Use the extracted labels as the Loki labels for indexing.
+		// These labels can be used as stream selectors in LogQL.
+		stage.labels {
+			values = {
+				eventType = "",
+				level     = "",
+			}
+		}
+	}
+}
+
+loki.write "default" {
+	endpoint {
+		url = format(
+			"http://%s/loki/api/v1/push",
+			coalesce(env("LOKI_HOST"), "localhost:3100"),
+		)
+	}
+}
