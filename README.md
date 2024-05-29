@@ -2,6 +2,8 @@
 
 This application polls Okta [System Log](https://developer.okta.com/docs/reference/api/system-log/) entries and print them to the console (`stdout`). The logs can then be forwarded to [Loki](https://grafana.com/docs/loki/latest/) using the [Promtail agent](https://grafana.com/docs/loki/latest/send-data/promtail/) or [Alloy](https://grafana.com/docs/alloy/latest/).
 
+![Grafana - Explore View](./assets/explore-view.png)
+
 ## Installation
 
 You can run the application using the provided Docker image, the released binary, or by building it from source.
@@ -61,6 +63,10 @@ The application cancels requests after `REQUEST_TIMEOUT`. The default value is `
 ```bash
 okta-logs-collector --apiKey <API_KEY> --oktaURL <OKTA_URL> poll --requestTimeout 30s
 ```
+
+## Examples
+
+For example usage, see the [examples](./examples/) directory. It contains configuration files for running Loki, Alloy and Promtail. The provided configuration files are for demonstration purposes only and should be adjusted to your environment. For example, you need to adjust the intervals, the Loki URL and/or remove `echo` configurations to disable printing logs to the console.
 
 ## Contributing
 
