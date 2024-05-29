@@ -1,0 +1,60 @@
+run:
+  timeout: 3m
+linters:
+  disable-all: true
+  enable:
+    # Default linters
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    # Custom linters
+    - asciicheck
+    - bodyclose
+    - depguard
+    - dogsled
+    - gofmt
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - goconst
+    - gocritic
+    - gofumpt
+    - goimports
+    - goprintffuncname
+    - gosec
+    - misspell
+    - nakedret
+    - nilerr
+    - reassign
+    - revive
+    - unconvert
+    - varnamelen
+    - whitespace
+    - prealloc
+linters-settings:
+  depguard:
+    rules:
+      main:
+        files:
+          - $all
+          - "!$test"
+        allow:
+          - $gostd
+          - "github.com/grafana/okta-logs-collector/metadata"
+          - "github.com/okta/okta-sdk-golang/v2/"
+          - "github.com/pirsquare/country-mapper"
+          - "github.com/sirupsen/logrus"
+          - "github.com/urfave/cli/v2"
+      test:
+        files:
+          - $test
+        allow:
+          - $gostd
+          - "github.com/jarcoal/httpmock"
+          - "github.com/stretchr/testify"
+          - "github.com/okta/okta-sdk-golang/v2"

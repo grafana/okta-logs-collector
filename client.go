@@ -129,7 +129,6 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 				if country != nil {
 					event.Client.GeographicalContext.Country = country.Alpha2
 				}
-
 			}
 		}
 

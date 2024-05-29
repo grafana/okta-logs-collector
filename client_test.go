@@ -166,7 +166,7 @@ func TestPrintEvents_debug(t *testing.T) {
 	assert.Contains(t, buf.String(), `"level":"info"`)
 }
 
-func TestPrintEvents_unkown_severity(t *testing.T) {
+func TestPrintEvents_unknown_severity(t *testing.T) {
 	config = &Config{
 		oktaURL:          "https://example.okta.com",
 		apiKey:           "your-api-key",
@@ -405,7 +405,7 @@ func TestPollSystemLogs_mock(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	setupLogger(buf, config.logLevel)
 
-	mockHttpClient := http.DefaultClient
+	mockHTTPClient := http.DefaultClient
 	mockTransport := httpmock.DefaultTransport
 	respnder, err := httpmock.NewJsonResponder(200, httpmock.File("testdata/response.json"))
 	assert.NoError(t, err)
@@ -414,14 +414,14 @@ func TestPollSystemLogs_mock(t *testing.T) {
 		"https://example.okta.com/api/v1/logs",
 		respnder,
 	)
-	mockHttpClient.Transport = mockTransport
-	interceptor := func(r *http.Request) error {
+	mockHTTPClient.Transport = mockTransport
+	interceptor := func(*http.Request) error {
 		return nil
 	}
 
 	_, oktaClient, err := tests.NewClient(
 		context.TODO(),
-		okta.WithHttpInterceptorAndHttpClientPtr(interceptor, mockHttpClient, true),
+		okta.WithHttpInterceptorAndHttpClientPtr(interceptor, mockHTTPClient, true),
 		okta.WithOrgUrl(config.oktaURL),
 		okta.WithToken(config.apiKey),
 	)
