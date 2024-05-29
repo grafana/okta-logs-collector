@@ -1,0 +1,78 @@
+name: Build and release Okta Logs Collector
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - name: Build and release binaries
+        run: make build-release
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Sign in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            grafana/okta-logs-collector:${{ github.ref_name }}
+            grafana/okta-logs-collector:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          provenance: mode=max
+          sbom: true
+          tags: ${{ steps.meta.outputs.tags }}
+      - name: Scan Docker image with Syft and generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: docker:grafana/okta-logs-collector:${{ github.ref_name }}
+          format: cyclonedx-json
+          output-file: okta-logs-collector-image-${{ github.ref_name }}.cyclonedx.json
+      - name: Scan source code and generate SBOM
+        uses: CycloneDX/gh-gomod-generate-sbom@v2
+        with:
+          version: v1
+          args: mod -json -licenses -output okta-logs-collector-source-${{ github.ref_name }}.cyclonedx.json
+      - name: Create release and add artifacts
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/checksums.txt
+            dist/*.zip
+            okta-logs-collector-image-${{ github.ref_name }}.cyclonedx.json
+            okta-logs-collector-source-${{ github.ref_name }}.cyclonedx.json
+          draft: false
+          prerelease: false
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
