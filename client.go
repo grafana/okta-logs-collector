@@ -125,7 +125,9 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 	for _, event := range events {
 		if event.Client != nil {
 			if event.Client.GeographicalContext != nil {
-				country := c.countryMapper.MapByName(event.Client.GeographicalContext.Country)
+				country := c.countryMapper.MapByName(
+					strings.TrimPrefix(event.Client.GeographicalContext.Country, "The "),
+				)
 				if country != nil {
 					event.Client.GeographicalContext.Country = country.Alpha2
 				}
