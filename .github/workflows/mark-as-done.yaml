@@ -8,6 +8,7 @@ on:
 jobs:
   mark-as-done:
     runs-on: ubuntu-latest
+    if: false # Skip this for now, until auto-mate is made public
     steps:
       - name: Move closed issues and merged PRs to the "✅ Done" column
         uses: grafana/auto-mate@v1
