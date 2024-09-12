@@ -54,8 +54,7 @@ jobs:
       - name: Run Go tests 🔬
         run: go test -p 1 -cover -covermode atomic -coverprofile=profile.cov -v ./...
 
-    # Uncomment the following lines to report coverage to Coveralls
-    #   - name: Report coverage to coveralls 📈
-    #     uses: shogo82148/actions-goveralls@v1
-    #     with:
-    #       path-to-profile: profile.cov
+      - name: Report coverage to coveralls 📈
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: profile.cov
