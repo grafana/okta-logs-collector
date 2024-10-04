@@ -22,12 +22,13 @@ type Okta struct {
 }
 
 type Config struct {
-	oktaURL          string
-	apiKey           string
-	logLevel         string
-	lookbackInterval time.Duration
-	requestTimeout   time.Duration
-	pollInterval     time.Duration
+	oktaURL             string
+	apiKey              string
+	logLevel            string
+	lookbackInterval    time.Duration
+	requestTimeout      time.Duration
+	pollInterval        time.Duration
+	sanitzeUserIdentity bool
 }
 
 // newCountryClient initializes the country mapper client.
@@ -134,6 +135,10 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 			}
 		}
 
+		if c.cfg.sanitzeUserIdentity {
+			sanitizeUserIdentitiy(event)
+		}
+
 		// We have a lookback interval defined, which means that duplicate
 		// log entries could be logged; We override the log time to that of the
 		// event to deduplicate entries.
@@ -168,4 +173,35 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 				Log(level, "received event")
 		}
 	}
+}
+
+// sanitizeUserIdentity sanitizes user information in an Okta log event.
+// It specifically targets the DisplayName and AlternateId fields of the Actor and Target,
+// if their type is "User".
+//
+// Parameters:
+// - event: A pointer to an okta.LogEvent object that need to be sanitized.
+func sanitizeUserIdentitiy(event *okta.LogEvent) {
+	if event.Actor != nil && event.Actor.Type == "User" {
+		event.Actor.DisplayName = sanitizeString(event.Actor.DisplayName)
+		event.Actor.AlternateId = sanitizeString(event.Actor.AlternateId)
+	}
+
+	for _, target := range event.Target {
+		if target.Type == "User" {
+			target.DisplayName = sanitizeString(target.DisplayName)
+			target.AlternateId = sanitizeString(target.AlternateId)
+		}
+	}
+}
+
+// sanitizeString takes a string s and returns a sanitized version of it.
+// It returns the first character, followed by "...", and the last character.
+func sanitizeString(str string) string {
+	// If string is less than 3 chars, there is no reason to redact it.
+	if len(str) < 3 {
+		return str
+	}
+
+	return str[0:1] + "..." + str[len(str)-1:]
 }
