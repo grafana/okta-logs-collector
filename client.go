@@ -196,7 +196,7 @@ func sanitizeUserIdentity(event *okta.LogEvent) {
 }
 
 // sanitizeString takes a string s and returns a sanitized version of it.
-// It returns the first character, followed by "...", and the last character.
+// It returns the first character, followed by ellipsis, and the last character.
 func sanitizeString(str string) string {
 	// If string is less than 3 chars, there is no reason to redact it.
 	if len(str) < 3 {
