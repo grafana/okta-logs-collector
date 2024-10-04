@@ -22,13 +22,13 @@ type Okta struct {
 }
 
 type Config struct {
-	oktaURL             string
-	apiKey              string
-	logLevel            string
-	lookbackInterval    time.Duration
-	requestTimeout      time.Duration
-	pollInterval        time.Duration
-	sanitzeUserIdentity bool
+	oktaURL              string
+	apiKey               string
+	logLevel             string
+	lookbackInterval     time.Duration
+	requestTimeout       time.Duration
+	pollInterval         time.Duration
+	sanitizeUserIdentity bool
 }
 
 // newCountryClient initializes the country mapper client.
@@ -135,8 +135,8 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 			}
 		}
 
-		if c.cfg.sanitzeUserIdentity {
-			sanitizeUserIdentitiy(event)
+		if c.cfg.sanitizeUserIdentity {
+			sanitizeUserIdentity(event)
 		}
 
 		// We have a lookback interval defined, which means that duplicate
@@ -181,7 +181,7 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 //
 // Parameters:
 // - event: A pointer to an okta.LogEvent object that need to be sanitized.
-func sanitizeUserIdentitiy(event *okta.LogEvent) {
+func sanitizeUserIdentity(event *okta.LogEvent) {
 	if event.Actor != nil && event.Actor.Type == "User" {
 		event.Actor.DisplayName = sanitizeString(event.Actor.DisplayName)
 		event.Actor.AlternateId = sanitizeString(event.Actor.AlternateId)
