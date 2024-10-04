@@ -58,6 +58,13 @@ func main() {
 						EnvVars:     []string{"LOG_LEVEL"},
 						Destination: &config.logLevel,
 					},
+					&cli.BoolFlag{
+						Name:        "sanitizeUserIdentity",
+						Usage:       "Enable to sanitize user identity",
+						Value:       false,
+						EnvVars:     []string{"SANITIZE_USER_IDENTITY"},
+						Destination: &config.sanitizeUserIdentity,
+					},
 				},
 			},
 		},

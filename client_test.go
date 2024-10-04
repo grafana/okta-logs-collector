@@ -433,3 +433,64 @@ func TestPollSystemLogs_mock(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "poll ended")
 }
+
+func TestSanitizeUserIdentity(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    *okta.LogEvent
+		expected *okta.LogEvent
+	}{
+		{
+			name: "Actor is not User type",
+			input: &okta.LogEvent{
+				Actor: &okta.LogActor{Type: "Service", DisplayName: "actor1", AlternateId: "alt1"},
+				Target: []*okta.LogTarget{
+					{Type: "User", DisplayName: "target1", AlternateId: "alt1"},
+				},
+			},
+			expected: &okta.LogEvent{
+				Actor: &okta.LogActor{Type: "Service", DisplayName: "actor1", AlternateId: "alt1"},
+				Target: []*okta.LogTarget{
+					{Type: "User", DisplayName: "t...1", AlternateId: "a...1"},
+				},
+			},
+		},
+		{
+			name: "Actor is User type",
+			input: &okta.LogEvent{
+				Actor: &okta.LogActor{Type: "User", DisplayName: "actor1", AlternateId: "alt1"},
+				Target: []*okta.LogTarget{
+					{Type: "User", DisplayName: "target1", AlternateId: "alt1"},
+				},
+			},
+			expected: &okta.LogEvent{
+				Actor: &okta.LogActor{Type: "User", DisplayName: "a...1", AlternateId: "a...1"},
+				Target: []*okta.LogTarget{
+					{Type: "User", DisplayName: "t...1", AlternateId: "a...1"},
+				},
+			},
+		},
+		{
+			name: "Target is not User type",
+			input: &okta.LogEvent{
+				Actor: &okta.LogActor{Type: "User", DisplayName: "actor1", AlternateId: "alt1"},
+				Target: []*okta.LogTarget{
+					{Type: "Service", DisplayName: "target1", AlternateId: "alt1"},
+				},
+			},
+			expected: &okta.LogEvent{
+				Actor: &okta.LogActor{Type: "User", DisplayName: "a...1", AlternateId: "a...1"},
+				Target: []*okta.LogTarget{
+					{Type: "Service", DisplayName: "target1", AlternateId: "alt1"},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sanitizeUserIdentity(tt.input)
+			assert.Equal(t, tt.expected, tt.input)
+		})
+	}
+}
