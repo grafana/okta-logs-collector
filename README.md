@@ -64,6 +64,19 @@ The application cancels requests after `REQUEST_TIMEOUT`. The default value is `
 okta-logs-collector --apiKey <API_KEY> --oktaURL <OKTA_URL> poll --requestTimeout 30s
 ```
 
+### Sanitization
+
+The application can sanitize log messages by removing sensitive information. When the `type` is `USER`, the following fields will be sanitized. Their values will be replaced with the first character, followed by an ellipsis, and the last character.
+
+- actor.alternateId
+- actor.displayName
+- target.alternateId
+- target.displayName
+
+```bash
+okta-logs-collector --apiKey <API_KEY> --oktaURL <OKTA_URL> poll --sanitizeUserIdentity
+```
+
 ## Examples
 
 For example usage, see the [examples](./examples/) directory. It contains configuration files for running Loki, Alloy and Promtail. The provided configuration files are for demonstration purposes only and should be adjusted to your environment. For example, you need to adjust the intervals, the Loki URL and/or remove `echo` configurations to disable printing logs to the console.
