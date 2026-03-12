@@ -41,14 +41,14 @@ jobs:
           cache: false
 
       - name: Lint code with golangci-lint 🚨
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@d6238b002a20823d52840fda27e2d4891c5952dc # v4
         with:
           version: "v1.59"
           skip-pkg-cache: true
           install-mode: "goinstall"
 
       - name: Lint Dockerfile with hadolint 🚨
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
         with:
           dockerfile: Dockerfile
 
@@ -56,6 +56,6 @@ jobs:
         run: go test -p 1 -cover -covermode atomic -coverprofile=profile.cov -v ./...
 
       - name: Report coverage to coveralls 📈
-        uses: shogo82148/actions-goveralls@v1
+        uses: shogo82148/actions-goveralls@25f5320d970fb565100cf1993ada29be1bb196a1 # v1
         with:
           path-to-profile: profile.cov
