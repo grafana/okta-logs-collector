@@ -22,8 +22,8 @@ jobs:
       - name: Set up Go 1.22
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
-          cache: true
+          go-version: "1.26"
+          cache: false
       - name: Build and release binaries
         run: make build-release
       - name: Set up QEMU

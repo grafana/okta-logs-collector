@@ -1,6 +1,6 @@
 module github.com/grafana/okta-logs-collector
 
-go 1.22
+go 1.26
 
 require (
 	github.com/jarcoal/httpmock v1.3.1
