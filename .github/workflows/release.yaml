@@ -16,32 +16,33 @@ jobs:
       packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Set up Go 1.22
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.22"
-          cache: true
+          cache: false
       - name: Build and release binaries
         run: make build-release
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - name: Sign in to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
           images: grafana/okta-logs-collector
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -50,27 +51,26 @@ jobs:
           sbom: true
           tags: ${{ steps.meta.outputs.tags }}
       - name: Scan Docker image with Syft and generate SBOM
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: docker:grafana/okta-logs-collector:${{ github.ref_name }}
           format: cyclonedx-json
           output-file: okta-logs-collector-image-${{ github.ref_name }}.cyclonedx.json
       - name: Scan source code and generate SBOM
-        uses: CycloneDX/gh-gomod-generate-sbom@v2
+        uses: CycloneDX/gh-gomod-generate-sbom@efc74245d6802c8cefd925620515442756c70d8f # v2
         with:
           version: v1
           args: mod -json -licenses -output okta-logs-collector-source-${{ github.ref_name }}.cyclonedx.json
       - name: Create release and add artifacts
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            dist/*.tar.gz
-            dist/checksums.txt
-            dist/*.zip
-            okta-logs-collector-image-${{ github.ref_name }}.cyclonedx.json
-            okta-logs-collector-source-${{ github.ref_name }}.cyclonedx.json
-          draft: false
-          prerelease: false
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          generate_release_notes: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "${RELEASE_TAG}" \
+            --title "${RELEASE_TAG}" \
+            --generate-notes \
+            dist/*.tar.gz \
+            dist/checksums.txt \
+            dist/*.zip \
+            "okta-logs-collector-image-${RELEASE_TAG}.cyclonedx.json" \
+            "okta-logs-collector-source-${RELEASE_TAG}.cyclonedx.json"

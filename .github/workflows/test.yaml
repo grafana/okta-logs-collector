@@ -28,26 +28,30 @@ jobs:
     runs-on: ubuntu-latest
     # Timeout after 5 minutes, to avoid hanging tests
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Install Go 🧑‍💻
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.22"
+          cache: false
 
       - name: Lint code with golangci-lint 🚨
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@d6238b002a20823d52840fda27e2d4891c5952dc # v4
         with:
           version: "v1.59"
           skip-pkg-cache: true
           install-mode: "goinstall"
 
       - name: Lint Dockerfile with hadolint 🚨
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
         with:
           dockerfile: Dockerfile
 
@@ -55,6 +59,6 @@ jobs:
         run: go test -p 1 -cover -covermode atomic -coverprofile=profile.cov -v ./...
 
       - name: Report coverage to coveralls 📈
-        uses: shogo82148/actions-goveralls@v1
+        uses: shogo82148/actions-goveralls@9606dbc5ac5cf888a0e9ef901515c3cd516a2790 # v1
         with:
           path-to-profile: profile.cov
