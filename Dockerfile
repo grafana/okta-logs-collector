@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.26.2-alpine3.22 AS build
+FROM golang:1.26.2-alpine3.23 AS build
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -8,10 +8,10 @@ ARG TARGETARCH
 RUN mkdir /app
 WORKDIR /app
 COPY . /app/
-RUN apk --no-cache add git=2.49.1-r0 make=4.4.1-r3 && \
+RUN apk --no-cache add git=2.52.0-r0 make=4.4.1-r3 && \
     make build-docker-release GOOS=${TARGETOS} GOARCH=${TARGETARCH}
 
-FROM alpine:3.22 AS runner
+FROM alpine:3.23 AS runner
 
 ARG TARGETOS
 ARG TARGETARCH
