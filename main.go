@@ -53,7 +53,7 @@ func main() {
 					&cli.StringFlag{
 						Name:        "logLevel",
 						Usage:       "Log level",
-						Value:       "info",
+						Value:       defaultLogLevel,
 						Required:    false,
 						EnvVars:     []string{"LOG_LEVEL"},
 						Destination: &config.logLevel,

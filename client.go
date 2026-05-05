@@ -13,6 +13,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	logActorTypeUser         = "User"
+	headerRateLimitLimit     = "X-Rate-Limit-Limit"
+	headerRateLimitRemaining = "X-Rate-Limit-Remaining"
+	defaultLogLevel          = "info"
+)
+
 type Okta struct {
 	client *okta.Client
 	ctx    context.Context
@@ -95,13 +102,13 @@ func (c *Okta) PollSystemLogs() error {
 // logRateLimits logs the rate limits from the Okta API response when
 // the remaining limit is less than 2.
 func (c *Okta) logRateLimits(resp *okta.Response) {
-	limit, err := strconv.Atoi(resp.Header.Get("X-Rate-Limit-Limit"))
+	limit, err := strconv.Atoi(resp.Header.Get(headerRateLimitLimit))
 	if err != nil {
 		logrus.WithError(err).Error("could not parse rate limit")
 		return
 	}
 
-	remaining, err := strconv.Atoi(resp.Header.Get("X-Rate-Limit-Remaining"))
+	remaining, err := strconv.Atoi(resp.Header.Get(headerRateLimitRemaining))
 	if err != nil {
 		logrus.WithError(err).Error("could not parse remaining rate limit")
 		return
@@ -182,13 +189,13 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 // Parameters:
 // - event: A pointer to an okta.LogEvent object that need to be sanitized.
 func sanitizeUserIdentity(event *okta.LogEvent) {
-	if event.Actor != nil && event.Actor.Type == "User" {
+	if event.Actor != nil && event.Actor.Type == logActorTypeUser {
 		event.Actor.DisplayName = sanitizeString(event.Actor.DisplayName)
 		event.Actor.AlternateId = sanitizeString(event.Actor.AlternateId)
 	}
 
 	for _, target := range event.Target {
-		if target.Type == "User" {
+		if target.Type == logActorTypeUser {
 			target.DisplayName = sanitizeString(target.DisplayName)
 			target.AlternateId = sanitizeString(target.AlternateId)
 		}
