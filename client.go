@@ -22,9 +22,7 @@ const (
 )
 
 type Okta struct {
-	client *okta.APIClient
-	ctx    context.Context
-
+	client        *okta.APIClient
 	cfg           *Config
 	countryMapper *country_mapper.CountryInfoClient
 }
@@ -62,17 +60,16 @@ func NewOktaClient(cfg *Config) *Okta {
 
 	return &Okta{
 		client:        okta.NewAPIClient(configuration),
-		ctx:           context.Background(),
 		cfg:           cfg,
 		countryMapper: newCountryClient(),
 	}
 }
 
-// PollSystemLogs polls the Okta system logs and logs the events ti stdout using logrus.
+// PollSystemLogs polls the Okta system logs and logs the events to stdout using logrus.
 // It polls the logs every `pollInterval`.
 func (c *Okta) PollSystemLogs() error {
 	since := time.Now().UTC().Add(-c.cfg.lookbackInterval).Format("2006-01-02T15:04:05.999Z")
-	events, resp, err := c.client.SystemLogAPI.ListLogEvents(c.ctx).
+	events, resp, err := c.client.SystemLogAPI.ListLogEvents(context.Background()).
 		Since(since).
 		SortOrder("ASCENDING").
 		Execute()
@@ -190,9 +187,6 @@ func (c *Okta) printEvents(events []okta.LogEvent) {
 // sanitizeUserIdentity sanitizes user information in an Okta log event.
 // It specifically targets the DisplayName and AlternateId fields of the Actor and Target,
 // if their type is "User".
-//
-// Parameters:
-// - event: A pointer to an okta.LogEvent object that need to be sanitized.
 func sanitizeUserIdentity(event *okta.LogEvent) {
 	if event.Actor != nil && event.Actor.Type != nil && *event.Actor.Type == logActorTypeUser {
 		event.Actor.DisplayName = sanitizeStringPtr(event.Actor.DisplayName)

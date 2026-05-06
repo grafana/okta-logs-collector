@@ -23,10 +23,8 @@ const (
 	testSanitizedAltID    = "a...1"
 )
 
-func ptr[T any](v T) *T { return &v }
-
-func TestPrintEvents(t *testing.T) {
-	config = &Config{
+func newTestConfig() *Config {
+	return &Config{
 		oktaURL:          testOktaURL,
 		apiKey:           testAPIKey,
 		logLevel:         defaultLogLevel,
@@ -34,6 +32,10 @@ func TestPrintEvents(t *testing.T) {
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
 	}
+}
+
+func TestPrintEvents(t *testing.T) {
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -43,45 +45,45 @@ func TestPrintEvents(t *testing.T) {
 	now := time.Now()
 
 	securityContext := &okta.LogSecurityContext{}
-	securityContext.AsNumber.Set(ptr(int32(1234)))
-	securityContext.AsOrg.Set(ptr("some-random-org"))
-	securityContext.Domain.Set(ptr("example.com"))
-	securityContext.IsProxy.Set(ptr(false))
-	securityContext.Isp.Set(ptr("some-random-isp"))
+	securityContext.SetAsNumber(1234)
+	securityContext.SetAsOrg("some-random-org")
+	securityContext.SetDomain("example.com")
+	securityContext.SetIsProxy(false)
+	securityContext.SetIsp("some-random-isp")
 
 	// Create a sample log event
 	// see https://developer.okta.com/docs/reference/api/system-log/#example-logevent-object
 	events := []okta.LogEvent{
 		{
 			Actor: &okta.LogActor{
-				AlternateId: ptr("test@example.com"),
-				DisplayName: ptr("Test User"),
-				Id:          ptr(testEventID),
-				Type:        ptr(logActorTypeUser),
+				AlternateId: okta.PtrString("test@example.com"),
+				DisplayName: okta.PtrString("Test User"),
+				Id:          okta.PtrString(testEventID),
+				Type:        okta.PtrString(logActorTypeUser),
 			},
 			AuthenticationContext: &okta.LogAuthenticationContext{
-				ExternalSessionId: ptr(testEventID),
+				ExternalSessionId: okta.PtrString(testEventID),
 			},
 			Client: &okta.LogClient{
-				Device: ptr("Computer"),
+				Device: okta.PtrString("Computer"),
 				GeographicalContext: &okta.LogGeographicalContext{
-					City:    ptr("New York"),
-					Country: ptr("US"),
+					City:    okta.PtrString("New York"),
+					Country: okta.PtrString("US"),
 					Geolocation: &okta.LogGeolocation{
-						Lat: ptr(40.7128),
-						Lon: ptr(74.0060),
+						Lat: okta.PtrFloat64(40.7128),
+						Lon: okta.PtrFloat64(74.0060),
 					},
-					PostalCode: ptr("10000"),
-					State:      ptr("NY"),
+					PostalCode: okta.PtrString("10000"),
+					State:      okta.PtrString("NY"),
 				},
-				Id:        ptr(testEventID),
-				IpAddress: ptr("1.1.1.1"),
+				Id:        okta.PtrString(testEventID),
+				IpAddress: okta.PtrString("1.1.1.1"),
 				UserAgent: &okta.LogUserAgent{
-					Browser:      ptr("Chrome"),
-					Os:           ptr("Mac OS X"),
-					RawUserAgent: ptr("random-user-agent"),
+					Browser:      okta.PtrString("Chrome"),
+					Os:           okta.PtrString("Mac OS X"),
+					RawUserAgent: okta.PtrString("random-user-agent"),
 				},
-				Zone: ptr("null"),
+				Zone: okta.PtrString("null"),
 			},
 			DebugContext: &okta.LogDebugContext{
 				DebugData: map[string]interface{}{
@@ -94,47 +96,47 @@ func TestPrintEvents(t *testing.T) {
 					"url":             "/oauth2/v1/authorize?client_id=some-random-id&scope=openid+email+profile&response_type=code&redirect_uri=https://example.com/login/sso/oidc&state=some-random-state&code_challenge=some-random-code-challenge&code_challenge_method=S256",
 				},
 			},
-			DisplayMessage:  ptr("User attempted unauthorized access to app"),
-			EventType:       ptr("app.generic.unauth_app_access_attempt"),
-			LegacyEventType: ptr("app.generic.unauth_app_access_attempt"),
+			DisplayMessage:  okta.PtrString("User attempted unauthorized access to app"),
+			EventType:       okta.PtrString("app.generic.unauth_app_access_attempt"),
+			LegacyEventType: okta.PtrString("app.generic.unauth_app_access_attempt"),
 			Outcome: &okta.LogOutcome{
-				Result: ptr("FAILURE"),
+				Result: okta.PtrString("FAILURE"),
 			},
 			Published: &now,
 			Request: &okta.LogRequest{
 				IpChain: []okta.LogIpAddress{
 					{
 						GeographicalContext: &okta.LogGeographicalContext{
-							City:    ptr("New York"),
-							Country: ptr("US"),
+							City:    okta.PtrString("New York"),
+							Country: okta.PtrString("US"),
 							Geolocation: &okta.LogGeolocation{
-								Lat: ptr(40.7128),
-								Lon: ptr(74.0060),
+								Lat: okta.PtrFloat64(40.7128),
+								Lon: okta.PtrFloat64(74.0060),
 							},
-							PostalCode: ptr("10000"),
-							State:      ptr("NY"),
+							PostalCode: okta.PtrString("10000"),
+							State:      okta.PtrString("NY"),
 						},
-						Ip:      ptr("1.1.1.1"),
-						Version: ptr("V4"),
+						Ip:      okta.PtrString("1.1.1.1"),
+						Version: okta.PtrString("V4"),
 					},
 				},
 			},
 			SecurityContext: securityContext,
-			Severity:        ptr("WARN"),
+			Severity:        okta.PtrString("WARN"),
 			Target: []okta.LogTarget{
 				{
-					AlternateId: ptr("Something something"),
-					DisplayName: ptr("Some display name"),
-					Id:          ptr(testEventID),
-					Type:        ptr("AppInstance"),
+					AlternateId: okta.PtrString("Something something"),
+					DisplayName: okta.PtrString("Some display name"),
+					Id:          okta.PtrString(testEventID),
+					Type:        okta.PtrString("AppInstance"),
 				},
 			},
 			Transaction: &okta.LogTransaction{
-				Id:   ptr(testEventID),
-				Type: ptr("WEB"),
+				Id:   okta.PtrString(testEventID),
+				Type: okta.PtrString("WEB"),
 			},
-			Uuid:    ptr("some-random-uuid"),
-			Version: ptr("0"),
+			Uuid:    okta.PtrString("some-random-uuid"),
+			Version: okta.PtrString("0"),
 		},
 	}
 
@@ -145,14 +147,7 @@ func TestPrintEvents(t *testing.T) {
 }
 
 func TestPrintEvents_debug(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -164,7 +159,7 @@ func TestPrintEvents_debug(t *testing.T) {
 	// Create a sample log event with severity set to DEBUG
 	events := []okta.LogEvent{
 		{
-			Severity:  ptr("DEBUG"),
+			Severity:  okta.PtrString("DEBUG"),
 			Published: &now,
 		},
 	}
@@ -177,14 +172,7 @@ func TestPrintEvents_debug(t *testing.T) {
 }
 
 func TestPrintEvents_unknown_severity(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -196,7 +184,7 @@ func TestPrintEvents_unknown_severity(t *testing.T) {
 	// Create a sample log event with severity set to DEBUG
 	events := []okta.LogEvent{
 		{
-			Severity:  ptr("SOMETHING UNPARSABLE"),
+			Severity:  okta.PtrString("SOMETHING UNPARSABLE"),
 			Published: &now,
 		},
 	}
@@ -211,14 +199,7 @@ func TestPrintEvents_unknown_severity(t *testing.T) {
 }
 
 func TestPrintEvents_no_events(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -230,14 +211,7 @@ func TestPrintEvents_no_events(t *testing.T) {
 }
 
 func TestLogRateLimits(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -260,14 +234,7 @@ func TestLogRateLimits(t *testing.T) {
 }
 
 func TestLogRateLimits_remaining_less_than_2(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -293,14 +260,7 @@ func TestLogRateLimits_remaining_less_than_2(t *testing.T) {
 }
 
 func TestLogRateLimits_missing_rate_limit(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -319,14 +279,7 @@ func TestLogRateLimits_missing_rate_limit(t *testing.T) {
 }
 
 func TestLogRateLimits_missing_remaining_rate_limit(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -349,14 +302,7 @@ func TestLogRateLimits_missing_remaining_rate_limit(t *testing.T) {
 }
 
 func TestLogRateLimits_missing_reset_rate_limit(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -381,14 +327,7 @@ func TestLogRateLimits_missing_reset_rate_limit(t *testing.T) {
 }
 
 func TestPollSystemLogs_invalid_token(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -401,14 +340,7 @@ func TestPollSystemLogs_invalid_token(t *testing.T) {
 }
 
 func TestPollSystemLogs_mock(t *testing.T) {
-	config = &Config{
-		oktaURL:          testOktaURL,
-		apiKey:           testAPIKey,
-		logLevel:         defaultLogLevel,
-		lookbackInterval: 24 * time.Hour,
-		requestTimeout:   10 * time.Second,
-		pollInterval:     5 * time.Second,
-	}
+	config = newTestConfig()
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
@@ -424,7 +356,12 @@ func TestPollSystemLogs_mock(t *testing.T) {
 		testOktaURL+"/api/v1/logs",
 		responder,
 	)
+	originalTransport := mockHTTPClient.Transport
 	mockHTTPClient.Transport = mockTransport
+	t.Cleanup(func() {
+		mockTransport.Reset()
+		mockHTTPClient.Transport = originalTransport
+	})
 
 	cfg, err := okta.NewConfiguration(
 		okta.WithHttpClientPtr(mockHTTPClient),
@@ -449,45 +386,45 @@ func TestSanitizeUserIdentity(t *testing.T) {
 		{
 			name: "Actor is not User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: ptr(testActorTypeService), DisplayName: ptr(testActorDisplayName), AlternateId: ptr(testActorAltID)},
+				Actor: &okta.LogActor{Type: okta.PtrString(testActorTypeService), DisplayName: okta.PtrString(testActorDisplayName), AlternateId: okta.PtrString(testActorAltID)},
 				Target: []okta.LogTarget{
-					{Type: ptr(logActorTypeUser), DisplayName: ptr(testTargetDisplayName), AlternateId: ptr(testActorAltID)},
+					{Type: okta.PtrString(logActorTypeUser), DisplayName: okta.PtrString(testTargetDisplayName), AlternateId: okta.PtrString(testActorAltID)},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: ptr(testActorTypeService), DisplayName: ptr(testActorDisplayName), AlternateId: ptr(testActorAltID)},
+				Actor: &okta.LogActor{Type: okta.PtrString(testActorTypeService), DisplayName: okta.PtrString(testActorDisplayName), AlternateId: okta.PtrString(testActorAltID)},
 				Target: []okta.LogTarget{
-					{Type: ptr(logActorTypeUser), DisplayName: ptr("t...1"), AlternateId: ptr(testSanitizedAltID)},
+					{Type: okta.PtrString(logActorTypeUser), DisplayName: okta.PtrString("t...1"), AlternateId: okta.PtrString(testSanitizedAltID)},
 				},
 			},
 		},
 		{
 			name: "Actor is User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: ptr(logActorTypeUser), DisplayName: ptr(testActorDisplayName), AlternateId: ptr(testActorAltID)},
+				Actor: &okta.LogActor{Type: okta.PtrString(logActorTypeUser), DisplayName: okta.PtrString(testActorDisplayName), AlternateId: okta.PtrString(testActorAltID)},
 				Target: []okta.LogTarget{
-					{Type: ptr(logActorTypeUser), DisplayName: ptr(testTargetDisplayName), AlternateId: ptr(testActorAltID)},
+					{Type: okta.PtrString(logActorTypeUser), DisplayName: okta.PtrString(testTargetDisplayName), AlternateId: okta.PtrString(testActorAltID)},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: ptr(logActorTypeUser), DisplayName: ptr(testSanitizedAltID), AlternateId: ptr(testSanitizedAltID)},
+				Actor: &okta.LogActor{Type: okta.PtrString(logActorTypeUser), DisplayName: okta.PtrString(testSanitizedAltID), AlternateId: okta.PtrString(testSanitizedAltID)},
 				Target: []okta.LogTarget{
-					{Type: ptr(logActorTypeUser), DisplayName: ptr("t...1"), AlternateId: ptr(testSanitizedAltID)},
+					{Type: okta.PtrString(logActorTypeUser), DisplayName: okta.PtrString("t...1"), AlternateId: okta.PtrString(testSanitizedAltID)},
 				},
 			},
 		},
 		{
 			name: "Target is not User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: ptr(logActorTypeUser), DisplayName: ptr(testActorDisplayName), AlternateId: ptr(testActorAltID)},
+				Actor: &okta.LogActor{Type: okta.PtrString(logActorTypeUser), DisplayName: okta.PtrString(testActorDisplayName), AlternateId: okta.PtrString(testActorAltID)},
 				Target: []okta.LogTarget{
-					{Type: ptr(testActorTypeService), DisplayName: ptr(testTargetDisplayName), AlternateId: ptr(testActorAltID)},
+					{Type: okta.PtrString(testActorTypeService), DisplayName: okta.PtrString(testTargetDisplayName), AlternateId: okta.PtrString(testActorAltID)},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: ptr(logActorTypeUser), DisplayName: ptr(testSanitizedAltID), AlternateId: ptr(testSanitizedAltID)},
+				Actor: &okta.LogActor{Type: okta.PtrString(logActorTypeUser), DisplayName: okta.PtrString(testSanitizedAltID), AlternateId: okta.PtrString(testSanitizedAltID)},
 				Target: []okta.LogTarget{
-					{Type: ptr(testActorTypeService), DisplayName: ptr(testTargetDisplayName), AlternateId: ptr(testActorAltID)},
+					{Type: okta.PtrString(testActorTypeService), DisplayName: okta.PtrString(testTargetDisplayName), AlternateId: okta.PtrString(testActorAltID)},
 				},
 			},
 		},
