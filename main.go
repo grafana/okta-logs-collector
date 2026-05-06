@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -8,7 +9,7 @@ import (
 
 	"github.com/grafana/okta-logs-collector/metadata"
 	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var config *Config
@@ -16,7 +17,7 @@ var config *Config
 func main() {
 	config = &Config{}
 
-	app := &cli.App{
+	app := &cli.Command{
 		Name:    metadata.Name,
 		Usage:   "Poll Okta API for System Logs",
 		Version: metadata.Version,
@@ -31,7 +32,7 @@ func main() {
 						Usage:       "Interval to rewind to when polling for updates",
 						Value:       1 * time.Hour,
 						Required:    false,
-						EnvVars:     []string{"LOOKBACK_INTERVAL"},
+						Sources:     cli.EnvVars("LOOKBACK_INTERVAL"),
 						Destination: &config.lookbackInterval,
 					},
 					&cli.DurationFlag{
@@ -39,7 +40,7 @@ func main() {
 						Usage:       "Interval between polls",
 						Value:       10 * time.Second,
 						Required:    false,
-						EnvVars:     []string{"POLL_INTERVAL"},
+						Sources:     cli.EnvVars("POLL_INTERVAL"),
 						Destination: &config.pollInterval,
 					},
 					&cli.DurationFlag{
@@ -47,7 +48,7 @@ func main() {
 						Usage:       "Cancel requests after this interval",
 						Value:       30 * time.Second,
 						Required:    false,
-						EnvVars:     []string{"REQUEST_TIMEOUT"},
+						Sources:     cli.EnvVars("REQUEST_TIMEOUT"),
 						Destination: &config.requestTimeout,
 					},
 					&cli.StringFlag{
@@ -55,14 +56,14 @@ func main() {
 						Usage:       "Log level",
 						Value:       defaultLogLevel,
 						Required:    false,
-						EnvVars:     []string{"LOG_LEVEL"},
+						Sources:     cli.EnvVars("LOG_LEVEL"),
 						Destination: &config.logLevel,
 					},
 					&cli.BoolFlag{
 						Name:        "sanitizeUserIdentity",
 						Usage:       "Enable to sanitize user identity",
 						Value:       false,
-						EnvVars:     []string{"SANITIZE_USER_IDENTITY"},
+						Sources:     cli.EnvVars("SANITIZE_USER_IDENTITY"),
 						Destination: &config.sanitizeUserIdentity,
 					},
 				},
@@ -73,7 +74,7 @@ func main() {
 				Name:        "apiKey",
 				Usage:       "API key used to communicate with Okta API",
 				Required:    true,
-				EnvVars:     []string{"API_KEY"},
+				Sources:     cli.EnvVars("API_KEY"),
 				Destination: &config.apiKey,
 			},
 			&cli.StringFlag{
@@ -81,13 +82,13 @@ func main() {
 				Usage:       "Okta URL for the organization",
 				DefaultText: "https://<org>.okta.com",
 				Required:    true,
-				EnvVars:     []string{"OKTA_URL"},
+				Sources:     cli.EnvVars("OKTA_URL"),
 				Destination: &config.oktaURL,
 			},
 		},
 	}
 
-	err := app.Run(os.Args)
+	err := app.Run(context.Background(), os.Args)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -105,7 +106,7 @@ func setupLogger(output io.Writer, level string) {
 	}
 }
 
-func poll(_ *cli.Context) error {
+func poll(_ context.Context, _ *cli.Command) error {
 	setupLogger(os.Stdout, config.logLevel)
 	client := NewOktaClient(config)
 	return fmt.Errorf("failed to poll system logs: %w", client.PollSystemLogs())

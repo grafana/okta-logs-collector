@@ -41,7 +41,7 @@ linters:
             - github.com/okta/okta-sdk-golang/v2/
             - github.com/pirsquare/country-mapper
             - github.com/sirupsen/logrus
-            - github.com/urfave/cli/v2
+            - github.com/urfave/cli/v3
         test:
           files:
             - $test
