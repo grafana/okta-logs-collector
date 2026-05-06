@@ -2,15 +2,13 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/okta/okta-sdk-golang/v2/okta"
-	"github.com/okta/okta-sdk-golang/v2/tests"
+	"github.com/okta/okta-sdk-golang/v6/okta"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,6 +22,8 @@ const (
 	testTargetDisplayName = "target1"
 	testSanitizedAltID    = "a...1"
 )
+
+func ptr[T any](v T) *T { return &v }
 
 func TestPrintEvents(t *testing.T) {
 	config = &Config{
@@ -41,42 +41,47 @@ func TestPrintEvents(t *testing.T) {
 	setupLogger(buf, config.logLevel)
 
 	now := time.Now()
-	isProxy := false
+
+	securityContext := &okta.LogSecurityContext{}
+	securityContext.AsNumber.Set(ptr(int32(1234)))
+	securityContext.AsOrg.Set(ptr("some-random-org"))
+	securityContext.Domain.Set(ptr("example.com"))
+	securityContext.IsProxy.Set(ptr(false))
+	securityContext.Isp.Set(ptr("some-random-isp"))
 
 	// Create a sample log event
 	// see https://developer.okta.com/docs/reference/api/system-log/#example-logevent-object
-	events := []*okta.LogEvent{
+	events := []okta.LogEvent{
 		{
 			Actor: &okta.LogActor{
-				AlternateId: "test@example.com",
-				DisplayName: "Test User",
-				Id:          testEventID,
-				Type:        logActorTypeUser,
+				AlternateId: ptr("test@example.com"),
+				DisplayName: ptr("Test User"),
+				Id:          ptr(testEventID),
+				Type:        ptr(logActorTypeUser),
 			},
 			AuthenticationContext: &okta.LogAuthenticationContext{
-				AuthenticationStep: 0,
-				ExternalSessionId:  testEventID,
+				ExternalSessionId: ptr(testEventID),
 			},
 			Client: &okta.LogClient{
-				Device: "Computer",
+				Device: ptr("Computer"),
 				GeographicalContext: &okta.LogGeographicalContext{
-					City:    "New York",
-					Country: "US",
+					City:    ptr("New York"),
+					Country: ptr("US"),
 					Geolocation: &okta.LogGeolocation{
-						Lat: 40.7128,
-						Lon: 74.0060,
+						Lat: ptr(40.7128),
+						Lon: ptr(74.0060),
 					},
-					PostalCode: "10000",
-					State:      "NY",
+					PostalCode: ptr("10000"),
+					State:      ptr("NY"),
 				},
-				Id:        testEventID,
-				IpAddress: "1.1.1.1",
+				Id:        ptr(testEventID),
+				IpAddress: ptr("1.1.1.1"),
 				UserAgent: &okta.LogUserAgent{
-					Browser:      "Chrome",
-					Os:           "Mac OS X",
-					RawUserAgent: "random-user-agent",
+					Browser:      ptr("Chrome"),
+					Os:           ptr("Mac OS X"),
+					RawUserAgent: ptr("random-user-agent"),
 				},
-				Zone: "null",
+				Zone: ptr("null"),
 			},
 			DebugContext: &okta.LogDebugContext{
 				DebugData: map[string]interface{}{
@@ -89,53 +94,47 @@ func TestPrintEvents(t *testing.T) {
 					"url":             "/oauth2/v1/authorize?client_id=some-random-id&scope=openid+email+profile&response_type=code&redirect_uri=https://example.com/login/sso/oidc&state=some-random-state&code_challenge=some-random-code-challenge&code_challenge_method=S256",
 				},
 			},
-			DisplayMessage:  "User attempted unauthorized access to app",
-			EventType:       "app.generic.unauth_app_access_attempt",
-			LegacyEventType: "app.generic.unauth_app_access_attempt",
+			DisplayMessage:  ptr("User attempted unauthorized access to app"),
+			EventType:       ptr("app.generic.unauth_app_access_attempt"),
+			LegacyEventType: ptr("app.generic.unauth_app_access_attempt"),
 			Outcome: &okta.LogOutcome{
-				Result: "FAILURE",
+				Result: ptr("FAILURE"),
 			},
 			Published: &now,
 			Request: &okta.LogRequest{
-				IpChain: []*okta.LogIpAddress{
+				IpChain: []okta.LogIpAddress{
 					{
 						GeographicalContext: &okta.LogGeographicalContext{
-							City:    "New York",
-							Country: "US",
+							City:    ptr("New York"),
+							Country: ptr("US"),
 							Geolocation: &okta.LogGeolocation{
-								Lat: 40.7128,
-								Lon: 74.0060,
+								Lat: ptr(40.7128),
+								Lon: ptr(74.0060),
 							},
-							PostalCode: "10000",
-							State:      "NY",
+							PostalCode: ptr("10000"),
+							State:      ptr("NY"),
 						},
-						Ip:      "1.1.1.1",
-						Version: "V4",
+						Ip:      ptr("1.1.1.1"),
+						Version: ptr("V4"),
 					},
 				},
 			},
-			SecurityContext: &okta.LogSecurityContext{
-				AsNumber: 1234,
-				AsOrg:    "some-random-org",
-				Domain:   "example.com",
-				IsProxy:  &isProxy,
-				Isp:      "some-random-isp",
-			},
-			Severity: "WARN",
-			Target: []*okta.LogTarget{
+			SecurityContext: securityContext,
+			Severity:        ptr("WARN"),
+			Target: []okta.LogTarget{
 				{
-					AlternateId: "Something something",
-					DisplayName: "Some display name",
-					Id:          testEventID,
-					Type:        "AppInstance",
+					AlternateId: ptr("Something something"),
+					DisplayName: ptr("Some display name"),
+					Id:          ptr(testEventID),
+					Type:        ptr("AppInstance"),
 				},
 			},
 			Transaction: &okta.LogTransaction{
-				Id:   testEventID,
-				Type: "WEB",
+				Id:   ptr(testEventID),
+				Type: ptr("WEB"),
 			},
-			Uuid:    "some-random-uuid",
-			Version: "0",
+			Uuid:    ptr("some-random-uuid"),
+			Version: ptr("0"),
 		},
 	}
 
@@ -163,9 +162,9 @@ func TestPrintEvents_debug(t *testing.T) {
 	now := time.Now()
 
 	// Create a sample log event with severity set to DEBUG
-	events := []*okta.LogEvent{
+	events := []okta.LogEvent{
 		{
-			Severity:  "DEBUG",
+			Severity:  ptr("DEBUG"),
 			Published: &now,
 		},
 	}
@@ -195,9 +194,9 @@ func TestPrintEvents_unknown_severity(t *testing.T) {
 	now := time.Now()
 
 	// Create a sample log event with severity set to DEBUG
-	events := []*okta.LogEvent{
+	events := []okta.LogEvent{
 		{
-			Severity:  "SOMETHING UNPARSABLE",
+			Severity:  ptr("SOMETHING UNPARSABLE"),
 			Published: &now,
 		},
 	}
@@ -242,7 +241,7 @@ func TestLogRateLimits(t *testing.T) {
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
-	response := &okta.Response{
+	response := &okta.APIResponse{
 		Response: &http.Response{
 			Header: map[string][]string{
 				headerRateLimitLimit:     {"60"},
@@ -272,7 +271,7 @@ func TestLogRateLimits_remaining_less_than_2(t *testing.T) {
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
-	response := &okta.Response{
+	response := &okta.APIResponse{
 		Response: &http.Response{
 			Header: map[string][]string{
 				headerRateLimitLimit:     {"60"},
@@ -305,7 +304,7 @@ func TestLogRateLimits_missing_rate_limit(t *testing.T) {
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
-	response := &okta.Response{
+	response := &okta.APIResponse{
 		Response: &http.Response{},
 	}
 
@@ -331,7 +330,7 @@ func TestLogRateLimits_missing_remaining_rate_limit(t *testing.T) {
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
-	response := &okta.Response{
+	response := &okta.APIResponse{
 		Response: &http.Response{
 			Header: map[string][]string{
 				headerRateLimitLimit: {"60"},
@@ -361,7 +360,7 @@ func TestLogRateLimits_missing_reset_rate_limit(t *testing.T) {
 	client := NewOktaClient(config)
 	assert.NotNil(t, client)
 
-	response := &okta.Response{
+	response := &okta.APIResponse{
 		Response: &http.Response{
 			Header: map[string][]string{
 				headerRateLimitLimit:     {"60"},
@@ -398,7 +397,7 @@ func TestPollSystemLogs_invalid_token(t *testing.T) {
 
 	err := client.PollSystemLogs()
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "the API returned an error: Invalid token provided")
+	assert.Contains(t, err.Error(), "401 Unauthorized")
 }
 
 func TestPollSystemLogs_mock(t *testing.T) {
@@ -418,27 +417,23 @@ func TestPollSystemLogs_mock(t *testing.T) {
 
 	mockHTTPClient := http.DefaultClient
 	mockTransport := httpmock.DefaultTransport
-	respnder, err := httpmock.NewJsonResponder(200, httpmock.File("testdata/response.json"))
+	responder, err := httpmock.NewJsonResponder(200, httpmock.File("testdata/response.json"))
 	assert.NoError(t, err)
 	mockTransport.RegisterResponder(
 		"GET",
 		testOktaURL+"/api/v1/logs",
-		respnder,
+		responder,
 	)
 	mockHTTPClient.Transport = mockTransport
-	interceptor := func(*http.Request) error {
-		return nil
-	}
 
-	_, oktaClient, err := tests.NewClient(
-		context.TODO(),
-		okta.WithHttpInterceptorAndHttpClientPtr(interceptor, mockHTTPClient, true),
+	cfg, err := okta.NewConfiguration(
+		okta.WithHttpClientPtr(mockHTTPClient),
 		okta.WithOrgUrl(config.oktaURL),
 		okta.WithToken(config.apiKey),
 	)
 	assert.NoError(t, err)
 
-	client.client = oktaClient
+	client.client = okta.NewAPIClient(cfg)
 
 	err = client.PollSystemLogs()
 	assert.Error(t, err)
@@ -454,45 +449,45 @@ func TestSanitizeUserIdentity(t *testing.T) {
 		{
 			name: "Actor is not User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: testActorTypeService, DisplayName: testActorDisplayName, AlternateId: testActorAltID},
-				Target: []*okta.LogTarget{
-					{Type: logActorTypeUser, DisplayName: testTargetDisplayName, AlternateId: testActorAltID},
+				Actor: &okta.LogActor{Type: ptr(testActorTypeService), DisplayName: ptr(testActorDisplayName), AlternateId: ptr(testActorAltID)},
+				Target: []okta.LogTarget{
+					{Type: ptr(logActorTypeUser), DisplayName: ptr(testTargetDisplayName), AlternateId: ptr(testActorAltID)},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: testActorTypeService, DisplayName: testActorDisplayName, AlternateId: testActorAltID},
-				Target: []*okta.LogTarget{
-					{Type: logActorTypeUser, DisplayName: "t...1", AlternateId: testSanitizedAltID},
+				Actor: &okta.LogActor{Type: ptr(testActorTypeService), DisplayName: ptr(testActorDisplayName), AlternateId: ptr(testActorAltID)},
+				Target: []okta.LogTarget{
+					{Type: ptr(logActorTypeUser), DisplayName: ptr("t...1"), AlternateId: ptr(testSanitizedAltID)},
 				},
 			},
 		},
 		{
 			name: "Actor is User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: logActorTypeUser, DisplayName: testActorDisplayName, AlternateId: testActorAltID},
-				Target: []*okta.LogTarget{
-					{Type: logActorTypeUser, DisplayName: testTargetDisplayName, AlternateId: testActorAltID},
+				Actor: &okta.LogActor{Type: ptr(logActorTypeUser), DisplayName: ptr(testActorDisplayName), AlternateId: ptr(testActorAltID)},
+				Target: []okta.LogTarget{
+					{Type: ptr(logActorTypeUser), DisplayName: ptr(testTargetDisplayName), AlternateId: ptr(testActorAltID)},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: logActorTypeUser, DisplayName: testSanitizedAltID, AlternateId: testSanitizedAltID},
-				Target: []*okta.LogTarget{
-					{Type: logActorTypeUser, DisplayName: "t...1", AlternateId: testSanitizedAltID},
+				Actor: &okta.LogActor{Type: ptr(logActorTypeUser), DisplayName: ptr(testSanitizedAltID), AlternateId: ptr(testSanitizedAltID)},
+				Target: []okta.LogTarget{
+					{Type: ptr(logActorTypeUser), DisplayName: ptr("t...1"), AlternateId: ptr(testSanitizedAltID)},
 				},
 			},
 		},
 		{
 			name: "Target is not User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: logActorTypeUser, DisplayName: testActorDisplayName, AlternateId: testActorAltID},
-				Target: []*okta.LogTarget{
-					{Type: testActorTypeService, DisplayName: testTargetDisplayName, AlternateId: testActorAltID},
+				Actor: &okta.LogActor{Type: ptr(logActorTypeUser), DisplayName: ptr(testActorDisplayName), AlternateId: ptr(testActorAltID)},
+				Target: []okta.LogTarget{
+					{Type: ptr(testActorTypeService), DisplayName: ptr(testTargetDisplayName), AlternateId: ptr(testActorAltID)},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: logActorTypeUser, DisplayName: testSanitizedAltID, AlternateId: testSanitizedAltID},
-				Target: []*okta.LogTarget{
-					{Type: testActorTypeService, DisplayName: testTargetDisplayName, AlternateId: testActorAltID},
+				Actor: &okta.LogActor{Type: ptr(logActorTypeUser), DisplayName: ptr(testSanitizedAltID), AlternateId: ptr(testSanitizedAltID)},
+				Target: []okta.LogTarget{
+					{Type: ptr(testActorTypeService), DisplayName: ptr(testTargetDisplayName), AlternateId: ptr(testActorAltID)},
 				},
 			},
 		},

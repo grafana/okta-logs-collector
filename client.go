@@ -7,8 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/okta/okta-sdk-golang/v2/okta"
-	"github.com/okta/okta-sdk-golang/v2/okta/query"
+	"github.com/okta/okta-sdk-golang/v6/okta"
 	country_mapper "github.com/pirsquare/country-mapper"
 	"github.com/sirupsen/logrus"
 )
@@ -23,7 +22,7 @@ const (
 )
 
 type Okta struct {
-	client *okta.Client
+	client *okta.APIClient
 	ctx    context.Context
 
 	cfg           *Config
@@ -52,7 +51,7 @@ func newCountryClient() *country_mapper.CountryInfoClient {
 
 // NewOktaClient initializes a new Okta client.
 func NewOktaClient(cfg *Config) *Okta {
-	ctx, client, err := okta.NewClient(context.Background(),
+	configuration, err := okta.NewConfiguration(
 		okta.WithOrgUrl(cfg.oktaURL),
 		okta.WithToken(cfg.apiKey),
 		okta.WithRequestTimeout(int64(cfg.requestTimeout.Seconds())),
@@ -62,8 +61,8 @@ func NewOktaClient(cfg *Config) *Okta {
 	}
 
 	return &Okta{
-		client:        client,
-		ctx:           ctx,
+		client:        okta.NewAPIClient(configuration),
+		ctx:           context.Background(),
 		cfg:           cfg,
 		countryMapper: newCountryClient(),
 	}
@@ -73,10 +72,10 @@ func NewOktaClient(cfg *Config) *Okta {
 // It polls the logs every `pollInterval`.
 func (c *Okta) PollSystemLogs() error {
 	since := time.Now().UTC().Add(-c.cfg.lookbackInterval).Format("2006-01-02T15:04:05.999Z")
-	events, resp, err := c.client.LogEvent.GetLogs(c.ctx, &query.Params{
-		Since:     since,
-		SortOrder: "ASCENDING",
-	})
+	events, resp, err := c.client.SystemLogAPI.ListLogEvents(c.ctx).
+		Since(since).
+		SortOrder("ASCENDING").
+		Execute()
 
 	for {
 		if err != nil {
@@ -95,7 +94,7 @@ func (c *Okta) PollSystemLogs() error {
 		logrus.Debugf("sleeping %s until next poll", c.cfg.pollInterval)
 		time.Sleep(c.cfg.pollInterval)
 
-		resp, err = resp.Next(c.ctx, &events)
+		resp, err = resp.Next(&events)
 	}
 
 	return fmt.Errorf("poll ended")
@@ -103,7 +102,7 @@ func (c *Okta) PollSystemLogs() error {
 
 // logRateLimits logs the rate limits from the Okta API response when
 // the remaining limit is less than 2.
-func (c *Okta) logRateLimits(resp *okta.Response) {
+func (c *Okta) logRateLimits(resp *okta.APIResponse) {
 	limit, err := strconv.Atoi(resp.Header.Get(headerRateLimitLimit))
 	if err != nil {
 		logrus.WithError(err).Error("could not parse rate limit")
@@ -131,21 +130,25 @@ func (c *Okta) logRateLimits(resp *okta.Response) {
 }
 
 // printEvents logs the events to stdout using logrus.
-func (c *Okta) printEvents(events []*okta.LogEvent) {
-	for _, event := range events {
-		if event.Client != nil {
-			if event.Client.GeographicalContext != nil {
-				country := c.countryMapper.MapByName(
-					strings.TrimPrefix(event.Client.GeographicalContext.Country, "The "),
-				)
-				if country != nil {
-					event.Client.GeographicalContext.Country = country.Alpha2
-				}
+func (c *Okta) printEvents(events []okta.LogEvent) {
+	for i := range events {
+		event := &events[i]
+		if event.Client != nil && event.Client.GeographicalContext != nil && event.Client.GeographicalContext.Country != nil {
+			country := c.countryMapper.MapByName(
+				strings.TrimPrefix(*event.Client.GeographicalContext.Country, "The "),
+			)
+			if country != nil {
+				event.Client.GeographicalContext.Country = &country.Alpha2
 			}
 		}
 
 		if c.cfg.sanitizeUserIdentity {
 			sanitizeUserIdentity(event)
+		}
+
+		var severity string
+		if event.Severity != nil {
+			severity = *event.Severity
 		}
 
 		// We have a lookback interval defined, which means that duplicate
@@ -161,24 +164,24 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 		// is not a valid log level or is a debug event, we log the event as info.
 		// Otherwise, we log the event with the parsed log level.
 		// see https://developer.okta.com/docs/reference/api/system-log/#attributes
-		if strings.ToLower(event.Severity) == "debug" {
-			logrus.WithTime(*event.Published).WithField("event", &event).Info(logMsgReceivedEvent)
+		if strings.ToLower(severity) == "debug" {
+			logrus.WithTime(*event.Published).WithField("event", event).Info(logMsgReceivedEvent)
 		} else {
-			level, err := logrus.ParseLevel(event.Severity)
+			level, err := logrus.ParseLevel(severity)
 			if err != nil {
 				logrus.
 					WithError(err).
-					WithField("severity", event.Severity).
+					WithField("severity", severity).
 					Error("could not parse log level")
 				logrus.
 					WithTime(*event.Published).
-					WithField("event", &event).
+					WithField("event", event).
 					Info(logMsgReceivedEvent)
 				continue
 			}
 			logrus.
 				WithTime(*event.Published).
-				WithField("event", &event).
+				WithField("event", event).
 				Log(level, logMsgReceivedEvent)
 		}
 	}
@@ -191,17 +194,28 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 // Parameters:
 // - event: A pointer to an okta.LogEvent object that need to be sanitized.
 func sanitizeUserIdentity(event *okta.LogEvent) {
-	if event.Actor != nil && event.Actor.Type == logActorTypeUser {
-		event.Actor.DisplayName = sanitizeString(event.Actor.DisplayName)
-		event.Actor.AlternateId = sanitizeString(event.Actor.AlternateId)
+	if event.Actor != nil && event.Actor.Type != nil && *event.Actor.Type == logActorTypeUser {
+		event.Actor.DisplayName = sanitizeStringPtr(event.Actor.DisplayName)
+		event.Actor.AlternateId = sanitizeStringPtr(event.Actor.AlternateId)
 	}
 
-	for _, target := range event.Target {
-		if target.Type == logActorTypeUser {
-			target.DisplayName = sanitizeString(target.DisplayName)
-			target.AlternateId = sanitizeString(target.AlternateId)
+	for i := range event.Target {
+		target := &event.Target[i]
+		if target.Type != nil && *target.Type == logActorTypeUser {
+			target.DisplayName = sanitizeStringPtr(target.DisplayName)
+			target.AlternateId = sanitizeStringPtr(target.AlternateId)
 		}
 	}
+}
+
+// sanitizeStringPtr returns a sanitized copy of the value pointed to by str,
+// or nil if str is nil.
+func sanitizeStringPtr(str *string) *string {
+	if str == nil {
+		return nil
+	}
+	sanitized := sanitizeString(*str)
+	return &sanitized
 }
 
 // sanitizeString takes a string s and returns a sanitized version of it.
