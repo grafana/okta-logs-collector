@@ -40,15 +40,11 @@ jobs:
       - name: Install Go 🧑‍💻
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: "1.22"
+          go-version: "1.26.2"
           cache: false
 
       - name: Lint code with golangci-lint 🚨
-        uses: golangci/golangci-lint-action@d6238b002a20823d52840fda27e2d4891c5952dc # v4
-        with:
-          version: "v1.59"
-          skip-pkg-cache: true
-          install-mode: "goinstall"
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
 
       - name: Lint Dockerfile with hadolint 🚨
         uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0

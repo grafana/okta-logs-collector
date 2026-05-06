@@ -13,6 +13,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	logActorTypeUser         = "User"
+	headerRateLimitLimit     = "X-Rate-Limit-Limit"
+	headerRateLimitRemaining = "X-Rate-Limit-Remaining"
+	headerRateLimitReset     = "X-Rate-Limit-Reset"
+	defaultLogLevel          = "info"
+	logMsgReceivedEvent      = "received event"
+)
+
 type Okta struct {
 	client *okta.Client
 	ctx    context.Context
@@ -95,13 +104,13 @@ func (c *Okta) PollSystemLogs() error {
 // logRateLimits logs the rate limits from the Okta API response when
 // the remaining limit is less than 2.
 func (c *Okta) logRateLimits(resp *okta.Response) {
-	limit, err := strconv.Atoi(resp.Header.Get("X-Rate-Limit-Limit"))
+	limit, err := strconv.Atoi(resp.Header.Get(headerRateLimitLimit))
 	if err != nil {
 		logrus.WithError(err).Error("could not parse rate limit")
 		return
 	}
 
-	remaining, err := strconv.Atoi(resp.Header.Get("X-Rate-Limit-Remaining"))
+	remaining, err := strconv.Atoi(resp.Header.Get(headerRateLimitRemaining))
 	if err != nil {
 		logrus.WithError(err).Error("could not parse remaining rate limit")
 		return
@@ -110,7 +119,7 @@ func (c *Okta) logRateLimits(resp *okta.Response) {
 	logEntry := logrus.WithFields(logrus.Fields{
 		"limit":     limit,
 		"remaining": remaining,
-		"reset":     resp.Header.Get("X-Rate-Limit-Reset"),
+		"reset":     resp.Header.Get(headerRateLimitReset),
 	})
 
 	// Log a warning only if we are close to the limit.
@@ -153,7 +162,7 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 		// Otherwise, we log the event with the parsed log level.
 		// see https://developer.okta.com/docs/reference/api/system-log/#attributes
 		if strings.ToLower(event.Severity) == "debug" {
-			logrus.WithTime(*event.Published).WithField("event", &event).Info("received event")
+			logrus.WithTime(*event.Published).WithField("event", &event).Info(logMsgReceivedEvent)
 		} else {
 			level, err := logrus.ParseLevel(event.Severity)
 			if err != nil {
@@ -164,13 +173,13 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 				logrus.
 					WithTime(*event.Published).
 					WithField("event", &event).
-					Info("received event")
+					Info(logMsgReceivedEvent)
 				continue
 			}
 			logrus.
 				WithTime(*event.Published).
 				WithField("event", &event).
-				Log(level, "received event")
+				Log(level, logMsgReceivedEvent)
 		}
 	}
 }
@@ -182,13 +191,13 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 // Parameters:
 // - event: A pointer to an okta.LogEvent object that need to be sanitized.
 func sanitizeUserIdentity(event *okta.LogEvent) {
-	if event.Actor != nil && event.Actor.Type == "User" {
+	if event.Actor != nil && event.Actor.Type == logActorTypeUser {
 		event.Actor.DisplayName = sanitizeString(event.Actor.DisplayName)
 		event.Actor.AlternateId = sanitizeString(event.Actor.AlternateId)
 	}
 
 	for _, target := range event.Target {
-		if target.Type == "User" {
+		if target.Type == logActorTypeUser {
 			target.DisplayName = sanitizeString(target.DisplayName)
 			target.AlternateId = sanitizeString(target.AlternateId)
 		}

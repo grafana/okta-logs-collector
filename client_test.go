@@ -14,11 +14,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	testOktaURL           = "https://example.okta.com"
+	testAPIKey            = "your-api-key"
+	testEventID           = "some-random-id"
+	testActorTypeService  = "Service"
+	testActorDisplayName  = "actor1"
+	testActorAltID        = "alt1"
+	testTargetDisplayName = "target1"
+	testSanitizedAltID    = "a...1"
+)
+
 func TestPrintEvents(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -39,12 +50,12 @@ func TestPrintEvents(t *testing.T) {
 			Actor: &okta.LogActor{
 				AlternateId: "test@example.com",
 				DisplayName: "Test User",
-				Id:          "some-random-id",
-				Type:        "User",
+				Id:          testEventID,
+				Type:        logActorTypeUser,
 			},
 			AuthenticationContext: &okta.LogAuthenticationContext{
 				AuthenticationStep: 0,
-				ExternalSessionId:  "some-random-id",
+				ExternalSessionId:  testEventID,
 			},
 			Client: &okta.LogClient{
 				Device: "Computer",
@@ -58,7 +69,7 @@ func TestPrintEvents(t *testing.T) {
 					PostalCode: "10000",
 					State:      "NY",
 				},
-				Id:        "some-random-id",
+				Id:        testEventID,
 				IpAddress: "1.1.1.1",
 				UserAgent: &okta.LogUserAgent{
 					Browser:      "Chrome",
@@ -69,10 +80,10 @@ func TestPrintEvents(t *testing.T) {
 			},
 			DebugContext: &okta.LogDebugContext{
 				DebugData: map[string]interface{}{
-					"authnRequestId":  "some-random-id",
+					"authnRequestId":  testEventID,
 					"dtHash":          "some-random-hash",
 					"redirectUri":     "https://example.com/login/sso/oidc",
-					"requestId":       "some-random-id",
+					"requestId":       testEventID,
 					"requestUri":      "/oauth2/v1/authorize",
 					"threatSuspected": "false",
 					"url":             "/oauth2/v1/authorize?client_id=some-random-id&scope=openid+email+profile&response_type=code&redirect_uri=https://example.com/login/sso/oidc&state=some-random-state&code_challenge=some-random-code-challenge&code_challenge_method=S256",
@@ -115,12 +126,12 @@ func TestPrintEvents(t *testing.T) {
 				{
 					AlternateId: "Something something",
 					DisplayName: "Some display name",
-					Id:          "some-random-id",
+					Id:          testEventID,
 					Type:        "AppInstance",
 				},
 			},
 			Transaction: &okta.LogTransaction{
-				Id:   "some-random-id",
+				Id:   testEventID,
 				Type: "WEB",
 			},
 			Uuid:    "some-random-uuid",
@@ -136,9 +147,9 @@ func TestPrintEvents(t *testing.T) {
 
 func TestPrintEvents_debug(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -168,9 +179,9 @@ func TestPrintEvents_debug(t *testing.T) {
 
 func TestPrintEvents_unknown_severity(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -202,9 +213,9 @@ func TestPrintEvents_unknown_severity(t *testing.T) {
 
 func TestPrintEvents_no_events(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -221,9 +232,9 @@ func TestPrintEvents_no_events(t *testing.T) {
 
 func TestLogRateLimits(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -234,15 +245,15 @@ func TestLogRateLimits(t *testing.T) {
 	response := &okta.Response{
 		Response: &http.Response{
 			Header: map[string][]string{
-				"X-Rate-Limit-Limit":     {"60"},
-				"X-Rate-Limit-Remaining": {"59"},
-				"X-Rate-Limit-Reset":     {"1630000000"},
+				headerRateLimitLimit:     {"60"},
+				headerRateLimitRemaining: {"59"},
+				headerRateLimitReset:     {"1630000000"},
 			},
 		},
 	}
 
 	buf := bytes.NewBuffer(nil)
-	setupLogger(buf, "info")
+	setupLogger(buf, defaultLogLevel)
 
 	client.logRateLimits(response)
 
@@ -251,9 +262,9 @@ func TestLogRateLimits(t *testing.T) {
 
 func TestLogRateLimits_remaining_less_than_2(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -264,15 +275,15 @@ func TestLogRateLimits_remaining_less_than_2(t *testing.T) {
 	response := &okta.Response{
 		Response: &http.Response{
 			Header: map[string][]string{
-				"X-Rate-Limit-Limit":     {"60"},
-				"X-Rate-Limit-Remaining": {"1"},
-				"X-Rate-Limit-Reset":     {"1630000000"},
+				headerRateLimitLimit:     {"60"},
+				headerRateLimitRemaining: {"1"},
+				headerRateLimitReset:     {"1630000000"},
 			},
 		},
 	}
 
 	buf := bytes.NewBuffer(nil)
-	setupLogger(buf, "info")
+	setupLogger(buf, defaultLogLevel)
 
 	client.logRateLimits(response)
 
@@ -284,9 +295,9 @@ func TestLogRateLimits_remaining_less_than_2(t *testing.T) {
 
 func TestLogRateLimits_missing_rate_limit(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -299,7 +310,7 @@ func TestLogRateLimits_missing_rate_limit(t *testing.T) {
 	}
 
 	buf := bytes.NewBuffer(nil)
-	setupLogger(buf, "info")
+	setupLogger(buf, defaultLogLevel)
 
 	client.logRateLimits(response)
 
@@ -310,9 +321,9 @@ func TestLogRateLimits_missing_rate_limit(t *testing.T) {
 
 func TestLogRateLimits_missing_remaining_rate_limit(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -323,13 +334,13 @@ func TestLogRateLimits_missing_remaining_rate_limit(t *testing.T) {
 	response := &okta.Response{
 		Response: &http.Response{
 			Header: map[string][]string{
-				"X-Rate-Limit-Limit": {"60"},
+				headerRateLimitLimit: {"60"},
 			},
 		},
 	}
 
 	buf := bytes.NewBuffer(nil)
-	setupLogger(buf, "info")
+	setupLogger(buf, defaultLogLevel)
 
 	client.logRateLimits(response)
 
@@ -340,9 +351,9 @@ func TestLogRateLimits_missing_remaining_rate_limit(t *testing.T) {
 
 func TestLogRateLimits_missing_reset_rate_limit(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -353,14 +364,14 @@ func TestLogRateLimits_missing_reset_rate_limit(t *testing.T) {
 	response := &okta.Response{
 		Response: &http.Response{
 			Header: map[string][]string{
-				"X-Rate-Limit-Limit":     {"60"},
-				"X-Rate-Limit-Remaining": {"1"},
+				headerRateLimitLimit:     {"60"},
+				headerRateLimitRemaining: {"1"},
 			},
 		},
 	}
 
 	buf := bytes.NewBuffer(nil)
-	setupLogger(buf, "info")
+	setupLogger(buf, defaultLogLevel)
 
 	client.logRateLimits(response)
 
@@ -372,9 +383,9 @@ func TestLogRateLimits_missing_reset_rate_limit(t *testing.T) {
 
 func TestPollSystemLogs_invalid_token(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -392,9 +403,9 @@ func TestPollSystemLogs_invalid_token(t *testing.T) {
 
 func TestPollSystemLogs_mock(t *testing.T) {
 	config = &Config{
-		oktaURL:          "https://example.okta.com",
-		apiKey:           "your-api-key",
-		logLevel:         "info",
+		oktaURL:          testOktaURL,
+		apiKey:           testAPIKey,
+		logLevel:         defaultLogLevel,
 		lookbackInterval: 24 * time.Hour,
 		requestTimeout:   10 * time.Second,
 		pollInterval:     5 * time.Second,
@@ -411,7 +422,7 @@ func TestPollSystemLogs_mock(t *testing.T) {
 	assert.NoError(t, err)
 	mockTransport.RegisterResponder(
 		"GET",
-		"https://example.okta.com/api/v1/logs",
+		testOktaURL+"/api/v1/logs",
 		respnder,
 	)
 	mockHTTPClient.Transport = mockTransport
@@ -443,45 +454,45 @@ func TestSanitizeUserIdentity(t *testing.T) {
 		{
 			name: "Actor is not User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: "Service", DisplayName: "actor1", AlternateId: "alt1"},
+				Actor: &okta.LogActor{Type: testActorTypeService, DisplayName: testActorDisplayName, AlternateId: testActorAltID},
 				Target: []*okta.LogTarget{
-					{Type: "User", DisplayName: "target1", AlternateId: "alt1"},
+					{Type: logActorTypeUser, DisplayName: testTargetDisplayName, AlternateId: testActorAltID},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: "Service", DisplayName: "actor1", AlternateId: "alt1"},
+				Actor: &okta.LogActor{Type: testActorTypeService, DisplayName: testActorDisplayName, AlternateId: testActorAltID},
 				Target: []*okta.LogTarget{
-					{Type: "User", DisplayName: "t...1", AlternateId: "a...1"},
+					{Type: logActorTypeUser, DisplayName: "t...1", AlternateId: testSanitizedAltID},
 				},
 			},
 		},
 		{
 			name: "Actor is User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: "User", DisplayName: "actor1", AlternateId: "alt1"},
+				Actor: &okta.LogActor{Type: logActorTypeUser, DisplayName: testActorDisplayName, AlternateId: testActorAltID},
 				Target: []*okta.LogTarget{
-					{Type: "User", DisplayName: "target1", AlternateId: "alt1"},
+					{Type: logActorTypeUser, DisplayName: testTargetDisplayName, AlternateId: testActorAltID},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: "User", DisplayName: "a...1", AlternateId: "a...1"},
+				Actor: &okta.LogActor{Type: logActorTypeUser, DisplayName: testSanitizedAltID, AlternateId: testSanitizedAltID},
 				Target: []*okta.LogTarget{
-					{Type: "User", DisplayName: "t...1", AlternateId: "a...1"},
+					{Type: logActorTypeUser, DisplayName: "t...1", AlternateId: testSanitizedAltID},
 				},
 			},
 		},
 		{
 			name: "Target is not User type",
 			input: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: "User", DisplayName: "actor1", AlternateId: "alt1"},
+				Actor: &okta.LogActor{Type: logActorTypeUser, DisplayName: testActorDisplayName, AlternateId: testActorAltID},
 				Target: []*okta.LogTarget{
-					{Type: "Service", DisplayName: "target1", AlternateId: "alt1"},
+					{Type: testActorTypeService, DisplayName: testTargetDisplayName, AlternateId: testActorAltID},
 				},
 			},
 			expected: &okta.LogEvent{
-				Actor: &okta.LogActor{Type: "User", DisplayName: "a...1", AlternateId: "a...1"},
+				Actor: &okta.LogActor{Type: logActorTypeUser, DisplayName: testSanitizedAltID, AlternateId: testSanitizedAltID},
 				Target: []*okta.LogTarget{
-					{Type: "Service", DisplayName: "target1", AlternateId: "alt1"},
+					{Type: testActorTypeService, DisplayName: testTargetDisplayName, AlternateId: testActorAltID},
 				},
 			},
 		},
