@@ -247,7 +247,7 @@ func TestLogRateLimits(t *testing.T) {
 			Header: map[string][]string{
 				headerRateLimitLimit:     {"60"},
 				headerRateLimitRemaining: {"59"},
-				"X-Rate-Limit-Reset":     {"1630000000"},
+				headerRateLimitReset:     {"1630000000"},
 			},
 		},
 	}
@@ -277,7 +277,7 @@ func TestLogRateLimits_remaining_less_than_2(t *testing.T) {
 			Header: map[string][]string{
 				headerRateLimitLimit:     {"60"},
 				headerRateLimitRemaining: {"1"},
-				"X-Rate-Limit-Reset":     {"1630000000"},
+				headerRateLimitReset:     {"1630000000"},
 			},
 		},
 	}

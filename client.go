@@ -17,7 +17,9 @@ const (
 	logActorTypeUser         = "User"
 	headerRateLimitLimit     = "X-Rate-Limit-Limit"
 	headerRateLimitRemaining = "X-Rate-Limit-Remaining"
+	headerRateLimitReset     = "X-Rate-Limit-Reset"
 	defaultLogLevel          = "info"
+	logMsgReceivedEvent      = "received event"
 )
 
 type Okta struct {
@@ -117,7 +119,7 @@ func (c *Okta) logRateLimits(resp *okta.Response) {
 	logEntry := logrus.WithFields(logrus.Fields{
 		"limit":     limit,
 		"remaining": remaining,
-		"reset":     resp.Header.Get("X-Rate-Limit-Reset"),
+		"reset":     resp.Header.Get(headerRateLimitReset),
 	})
 
 	// Log a warning only if we are close to the limit.
@@ -160,7 +162,7 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 		// Otherwise, we log the event with the parsed log level.
 		// see https://developer.okta.com/docs/reference/api/system-log/#attributes
 		if strings.ToLower(event.Severity) == "debug" {
-			logrus.WithTime(*event.Published).WithField("event", &event).Info("received event")
+			logrus.WithTime(*event.Published).WithField("event", &event).Info(logMsgReceivedEvent)
 		} else {
 			level, err := logrus.ParseLevel(event.Severity)
 			if err != nil {
@@ -171,13 +173,13 @@ func (c *Okta) printEvents(events []*okta.LogEvent) {
 				logrus.
 					WithTime(*event.Published).
 					WithField("event", &event).
-					Info("received event")
+					Info(logMsgReceivedEvent)
 				continue
 			}
 			logrus.
 				WithTime(*event.Published).
 				WithField("event", &event).
-				Log(level, "received event")
+				Log(level, logMsgReceivedEvent)
 		}
 	}
 }
