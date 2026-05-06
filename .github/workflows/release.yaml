@@ -21,10 +21,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Set up Go 1.22
+      - name: Set up Go 1.26.2
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: "1.22"
+          go-version: "1.26.2"
           cache: false
       - name: Build and release binaries
         run: make build-release

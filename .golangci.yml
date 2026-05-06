@@ -1,60 +1,74 @@
-run:
-  timeout: 3m
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
-    # Default linters
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
-    # Custom linters
     - asciicheck
     - bodyclose
     - depguard
     - dogsled
-    - gofmt
+    - errcheck
     - errorlint
     - exhaustive
-    - exportloopref
     - forbidigo
     - forcetypeassert
     - goconst
     - gocritic
-    - gofumpt
-    - goimports
     - goprintffuncname
     - gosec
+    - govet
+    - ineffassign
     - misspell
     - nakedret
     - nilerr
+    - prealloc
     - reassign
     - revive
+    - staticcheck
     - unconvert
+    - unused
     - varnamelen
     - whitespace
-    - prealloc
-linters-settings:
-  depguard:
-    rules:
-      main:
-        files:
-          - $all
-          - "!$test"
-        allow:
-          - $gostd
-          - "github.com/grafana/okta-logs-collector/metadata"
-          - "github.com/okta/okta-sdk-golang/v2/"
-          - "github.com/pirsquare/country-mapper"
-          - "github.com/sirupsen/logrus"
-          - "github.com/urfave/cli/v2"
-      test:
-        files:
-          - $test
-        allow:
-          - $gostd
-          - "github.com/jarcoal/httpmock"
-          - "github.com/stretchr/testify"
-          - "github.com/okta/okta-sdk-golang/v2"
+  settings:
+    depguard:
+      rules:
+        main:
+          files:
+            - $all
+            - '!$test'
+          allow:
+            - $gostd
+            - github.com/grafana/okta-logs-collector/metadata
+            - github.com/okta/okta-sdk-golang/v2/
+            - github.com/pirsquare/country-mapper
+            - github.com/sirupsen/logrus
+            - github.com/urfave/cli/v2
+        test:
+          files:
+            - $test
+          allow:
+            - $gostd
+            - github.com/jarcoal/httpmock
+            - github.com/stretchr/testify
+            - github.com/okta/okta-sdk-golang/v2
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
