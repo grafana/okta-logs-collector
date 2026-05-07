@@ -1,0 +1,18 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>grafana/grafana-renovate-config//presets/base"],
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": false,
+  "minimumReleaseAge": "3 days",
+  "packageRules": [
+    {
+      "description": "Group together all GitHub Action updates in a single weekly commit (Tuesday, midnight GMT)",
+      "matchDepTypes": [
+        "action"
+      ],
+      "groupName": "GH Actions",
+      "schedule": ["* 0-2 * * 2"]
+    }
+  ]
+}
