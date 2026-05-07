@@ -38,7 +38,7 @@ linters:
           allow:
             - $gostd
             - github.com/grafana/okta-logs-collector/metadata
-            - github.com/okta/okta-sdk-golang/v2/
+            - github.com/okta/okta-sdk-golang/v6/
             - github.com/pirsquare/country-mapper
             - github.com/sirupsen/logrus
             - github.com/urfave/cli/v3
@@ -49,7 +49,7 @@ linters:
             - $gostd
             - github.com/jarcoal/httpmock
             - github.com/stretchr/testify
-            - github.com/okta/okta-sdk-golang/v2
+            - github.com/okta/okta-sdk-golang/v6
   exclusions:
     generated: lax
     presets:
