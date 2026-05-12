@@ -8,7 +8,7 @@ require (
 	github.com/pirsquare/country-mapper v0.0.0-20180107162822-0fffc2d62977
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
-	github.com/urfave/cli/v3 v3.8.0
+	github.com/urfave/cli/v3 v3.9.0
 )
 
 require (
