@@ -3,7 +3,7 @@ module github.com/grafana/okta-logs-collector
 go 1.26.2
 
 require (
-	github.com/jarcoal/httpmock v1.4.1
+	github.com/jarcoal/httpmock v1.4.2
 	github.com/okta/okta-sdk-golang/v6 v6.1.6
 	github.com/pirsquare/country-mapper v0.0.0-20180107162822-0fffc2d62977
 	github.com/sirupsen/logrus v1.9.4
