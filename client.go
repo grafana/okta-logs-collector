@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/okta/okta-sdk-golang/v6/okta"
+	"github.com/okta/okta-sdk-golang/v8/okta"
 	country_mapper "github.com/pirsquare/country-mapper"
 	"github.com/sirupsen/logrus"
 )
