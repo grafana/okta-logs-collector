@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.26.10-alpine3.23@sha256:0525c952defebc693cdaf62cdf43afa32be5a7f377e99260642ea19c240c708e AS build
+FROM golang:1.26.11-alpine3.23@sha256:db99415e2625ce0ee03eed09edf7f32ae8c58dc399f28cc602a87fe7238119e4 AS build
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -11,7 +11,7 @@ COPY . /app/
 RUN apk --no-cache add git=2.52.0-r0 make=4.4.1-r3 && \
     make build-docker-release GOOS=${TARGETOS} GOARCH=${TARGETARCH}
 
-FROM alpine:3.23@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63 AS runner
+FROM alpine:3.23@sha256:469c9ea410b9215eaee7976ba6c0639039b444be8e5d638f7abbada189971eb2 AS runner
 
 ARG TARGETOS
 ARG TARGETARCH
