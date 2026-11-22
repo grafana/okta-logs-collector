@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/okta/okta-sdk-golang/v6/okta"
+	"github.com/okta/okta-sdk-golang/v9/okta"
 	"github.com/stretchr/testify/assert"
 )
 
