@@ -11,7 +11,7 @@ COPY . /app/
 RUN apk --no-cache add git=2.52.0-r0 make=4.4.1-r3 && \
     make build-docker-release GOOS=${TARGETOS} GOARCH=${TARGETARCH}
 
-FROM alpine:3.23@sha256:469c9ea410b9215eaee7976ba6c0639039b444be8e5d638f7abbada189971eb2 AS runner
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS runner
 
 ARG TARGETOS
 ARG TARGETARCH
