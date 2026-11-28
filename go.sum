@@ -38,8 +38,8 @@ github.com/lestrrat-go/option/v2 v2.0.0 h1:XxrcaJESE1fokHy3FpaQ/cXW8ZsIdWcdFzzLO
 github.com/lestrrat-go/option/v2 v2.0.0/go.mod h1:oSySsmzMoR0iRzCDCaUfsCzxQHUEuhOViQObyy7S6Vg=
 github.com/maxatome/go-testdeep v1.14.0 h1:rRlLv1+kI8eOI3OaBXZwb3O7xY3exRzdW5QyX48g9wI=
 github.com/maxatome/go-testdeep v1.14.0/go.mod h1:lPZc/HAcJMP92l7yI6TRz1aZN5URwUBUAfUNvrclaNM=
-github.com/okta/okta-sdk-golang/v6 v6.1.6 h1:bObKXhkFh1c1tCfjcYoRoTjDJeIPMsEZHrjLasawEpk=
-github.com/okta/okta-sdk-golang/v6 v6.1.6/go.mod h1:hLXAo1HqjsWlMdbop9yLVJ9MWIek9qRsNbkhZQAiXsw=
+github.com/okta/okta-sdk-golang/v6 v6.1.7 h1:LVOCEfR/oFDLOm2/DDRFdfSoi2Yfa5UTs2rU9zyKrfg=
+github.com/okta/okta-sdk-golang/v6 v6.1.7/go.mod h1:hLXAo1HqjsWlMdbop9yLVJ9MWIek9qRsNbkhZQAiXsw=
 github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627 h1:pSCLCl6joCFRnjpeojzOpEYs4q7Vditq8fySFG5ap3Y=
 github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627/go.mod h1:3Qf8kWWT7OJRJbdiICTKqZju1ZixQ/KpMGzzAfe6+WQ=
 github.com/pirsquare/country-mapper v0.0.0-20180107162822-0fffc2d62977 h1:y3eVd9XFG+pwC7qkuLiTuCz/EoV49vLYnPdATMX/NzI=
